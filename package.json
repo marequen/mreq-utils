@@ -1,0 +1,19 @@
+{
+  "name": "mreq-utils",
+  "version": "0.1.0",
+  "description": "My personal set of JavaScript utilities",
+  "main": "lib/index.js",
+  "scripts": {
+    "build:commonjs": "babel src --out-dir lib",
+    "test": "jest"
+  },
+  "author": "Max Requenes",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.17.10",
+    "@babel/core": "^7.18.5",
+    "@babel/preset-env": "^7.18.2",
+    "babel-jest": "^28.1.1",
+    "jest": "^28.1.1"
+  }
+}
