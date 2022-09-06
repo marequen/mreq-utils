@@ -1,4 +1,65 @@
-import * as Utils from ".";
+import * as Utils from "./index.js";
+import {jest} from "@jest/globals";
+import {isNonEmptyString, setFind, sortedStringArrayCollate, stringCompareLoose, urlGetBase} from "./index.js";
+
+afterEach(() => {
+  jest.useRealTimers();
+  window.location = {}
+});
+
+it('nonNil(undefined)', ()=>{
+  expect(Utils.notNil(undefined)).toEqual(false);
+})
+it('nonNil(null)', ()=>{
+  expect(Utils.notNil(null)).toEqual(false);
+})
+it('nonNil(false)', ()=>{
+  expect(Utils.notNil(false)).toEqual(true);
+})
+it('nonNil(0)', ()=>{
+  expect(Utils.notNil(0)).toEqual(true);
+})
+it('nonNil("")', ()=>{
+  expect(Utils.notNil("")).toEqual(true);
+})
+
+it('stringCompareLoose("","")', ()=>{
+  expect(Utils.stringCompareLoose("", "")).toEqual(0);
+})
+it('stringCompareLoose("a","A")', ()=>{
+  expect(Utils.stringCompareLoose("a", "A")).toEqual(0);
+})
+it('stringCompareLoose("a","B")', ()=>{
+  expect(Utils.stringCompareLoose("a", "B")).toEqual(-1);
+})
+it('stringCompareLoose("B","a")', ()=>{
+  expect(Utils.stringCompareLoose("B", "a")).toEqual(1);
+})
+
+it('stringEqualLoose("","")', ()=>{
+  expect(Utils.stringEqualLoose("", "")).toEqual(true);
+})
+it('stringEqualLoose("a","A")', ()=>{
+  expect(Utils.stringEqualLoose("a", "A")).toEqual(true);
+})
+it('stringEqualLoose("a","B")', ()=>{
+  expect(Utils.stringEqualLoose("a", "B")).toEqual(false);
+})
+it('stringEqualLoose("B","a")', ()=>{
+  expect(Utils.stringEqualLoose("B", "a")).toEqual(false);
+})
+it('isNonEmptyString("")', ()=>{
+  expect(Utils.isNonEmptyString("")).toEqual(false);
+})
+it('isNonEmptyString(...)', ()=>{
+  let r = [null, undefined, false, true, 1, 0, {'a':1}, [1]].map(Utils.isNonEmptyString);
+  let s = new Set(r);
+  expect(s.size).toEqual(1);
+  expect(s.has(true)).toEqual(false);
+})
+it('isNonEmptyString("a")', ()=>{
+  expect(Utils.isNonEmptyString("a")).toEqual(true);
+})
 
 it('stringTrimFileExtension simple', ()=>{
   const result = Utils.stringTrimFileExtension('abc.ext');
@@ -25,6 +86,11 @@ it('stringTrimFileExtension with 2 dots', ()=>{
   expect(result).toBe('abc.');
 })
 
+it('arrayFirst', ()=>{
+  const result = Utils.arrayFirst([1,2,3]);
+  expect(result).toBe(1);
+})
+
 it('arrayLast', ()=>{
   const result = Utils.arrayLast([1,2,3]);
   expect(result).toBe(3);
@@ -42,12 +108,125 @@ it('arrayRemoveIndex', ()=>{
   expect(result).toEqual([2]);
 })
 
+it('sortedStringArrayFindFirstAndLast', ()=>{
+  let a = [
+    'a', 'b', 'ca', 'cb', 'cc', 'd'
+  ];
+  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'c');
+  expect(f).toBe(2);
+  expect(l).toBe(4);
+})
+
+it('sortedStringArrayFindFirstAndLast 2', ()=>{
+  let a = [
+    'a', 'b', 'ca', 'cb', 'cc', 'd'
+  ];
+  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'd');
+  expect(f).toBe(5);
+  expect(l).toBe(5);
+})
+
+it('sortedStringArrayFindFirstAndLast 3', ()=>{
+  let a = [
+    'a', 'b', 'ba', 'ca', 'cb', 'cc', 'd', 'e', 'f', 'g', 'h'
+  ];
+  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'cb');
+  expect(f).toBe(4);
+  expect(l).toBe(4);
+})
+
+it('sortedStringArrayFindFirstAndLast 4', ()=>{
+  let a = [
+    'a', 'ab'
+  ];
+  let r = Utils.sortedStringArrayFindFirstAndLast(a, 'a');
+  expect(r).toStrictEqual([0, 1]);
+})
+
+it('sortedStringArrayFindFirstAndLast not found', ()=>{
+  let a = [
+    'a', 'b', 'ca', 'cb', 'cc', 'd'
+  ];
+  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'e');
+  expect(f).toBe(-1);
+  expect(l).toBe(-1);
+})
+
+
+it('sortedArrayFindFirstAndLast', ()=>{
+  let a = [
+    {name:'a'},
+    {name:'b'},
+    {name:'ca'},
+    {name:'cb'},
+    {name:'cc'},
+    {name:'d'}
+  ];
+  let [f,l] = Utils.sortedArrayFindFirstAndLast(a, 'c', (item)=>item.name);
+  expect(f).toBe(2);
+  expect(l).toBe(4);
+})
+
+it('sortedStringArrayCollate', ()=>{
+  let a1 = [
+    'a', 'ca',  'cc',
+  ];
+  let a2 = [
+    'b',  'cb',  'd'
+  ];
+  let e = [
+    'a', 'b', 'ca', 'cb', 'cc', 'd'
+  ];
+  let r = Utils.sortedStringArrayCollate(a1, a2);
+  expect(r).toStrictEqual(e);
+})
+
+it('sortedStringArrayCollate 2', ()=>{
+  let a1 = [
+    'a', 'b',  'cc', 'd'
+  ];
+  let a2 = [
+    'ca',  'cb',
+  ];
+  let e = [
+    'a', 'b', 'ca', 'cb', 'cc', 'd'
+  ];
+  let r = Utils.sortedStringArrayCollate(a1, a2);
+  expect(r).toStrictEqual(e);
+})
+
+it('sortedArrayCollate', ()=>{
+  let a1 = [
+    {name:'a'},
+    {name:'ca'},
+    {name:'cc'}
+  ];
+  let a2 = [
+    {name:'b'},
+    {name:'cb'},
+    {name:'d'}
+  ];
+  let e = [
+    {name:'a'},
+    {name:'b'},
+    {name:'ca'},
+    {name:'cb'},
+    {name:'cc'},
+    {name:'d'}
+  ];
+  let r = Utils.sortedArrayCollate(a1, a2, (item)=>item.name);
+  expect(r).toStrictEqual(e);
+})
+
 it('mapSome', ()=>{
   let testMap = new Map();
   testMap.set('a', 'first');
   testMap.set('b', 'last');
-  const result = Utils.mapSome(testMap, v => v === 'last');
+  let result = Utils.mapSome(testMap, v => v === 'last');
   expect(result).toBe(true);
+
+  result = Utils.mapSome(testMap, v => v === 'not found');
+  expect(result).toBe(false);
 })
 
 it('mapFilterInPlace', ()=>{
@@ -57,6 +236,28 @@ it('mapFilterInPlace', ()=>{
   Utils.mapFilterInPlace(testMap, v => v !== 'last');
   expect(testMap.get('a')).toBe('first');
   expect(testMap.get('b')).toBeUndefined();
+})
+
+it('setFirst', ()=>{
+  let testSetA = new Set([1, 2, 3]);
+  expect(Utils.setFirst(testSetA)).toEqual(1);
+})
+
+it('setFind', ()=>{
+  let testSetA = new Set([1, 2, 3]);
+  expect(Utils.setFind(testSetA, (item)=> item === 1)).toEqual(1);
+  expect(Utils.setFind(testSetA, (item)=> item === 3)).toEqual(3);
+  expect(Utils.setFind(testSetA, (item)=> item === 4)).toEqual(undefined);
+})
+
+it('setToggle', ()=>{
+  let testSetA = new Set([1, 3]);
+  Utils.setToggle(testSetA, 2);
+
+  expect(testSetA.has(2)).toBe(true);
+  Utils.setToggle(testSetA, 2);
+
+  expect(testSetA.has(2)).toBe(false);
 })
 
 it('setsMerge', ()=>{
@@ -81,6 +282,16 @@ it('setMergeInPlace', ()=>{
   Utils.setMergeInPlace(testSetA, testSetB);
   expect(testSetA.has('a')).toBe(true);
   expect(testSetA.has('b')).toBe(true);
+})
+
+it('setSome', ()=>{
+  let testSetA = new Set([1, 2, 3]);
+  expect(Utils.setSome(testSetA, (item) => item===1)).toBe(true);
+  expect(Utils.setSome(testSetA, (item) => item===undefined)).toBe(false);
+
+  let testSetB = new Set([1, 2, undefined]);
+  expect(Utils.setSome(testSetB, (item) => item===1)).toBe(true)
+  expect(Utils.setSome(testSetB, (item) => item===undefined)).toBe(true)
 })
 
 it('domClosest', ()=>{
@@ -206,6 +417,15 @@ it('pathProp foo[0].bar', ()=>{
   const result = Utils.pathProp(testObject, 'foo[0].bar');
   expect(result).toBe(69);
 })
+
+it('pathProp foo[0] with non-array', ()=>{
+  const testObject = {
+    foo: ""
+  };
+  const result = Utils.pathProp(testObject, 'foo[0]');
+  expect(result).toBe(undefined);
+})
+
 it('pathPropStore foo.bar', ()=>{
   const testObject = {
     foo: {
@@ -262,7 +482,11 @@ it('jsonParseNoThrow valid JSON', ()=>{
 
 it('jsonParseNoThrow invalid JSON', ()=>{
 
+  const original = console.error
+  console.error = jest.fn()
   let result = Utils.jsonParseNoThrow('{ "a: 1942 }');
+  console.error = original
+
   expect(result).toEqual(null );
 
 })
@@ -309,31 +533,58 @@ it('dateInputValueToTimeStamp', ()=>{
 })
 
 it('promiseAllSettledTallyResults', ()=>{
+
+  jest.useFakeTimers();
+
   const promise1 = Promise.resolve(3);
   const promise2 = new Promise((resolve, reject) => setTimeout(reject, 100, 'foo'));
   const promise3 = Promise.reject();
 
   const promises = [promise1, promise2, promise3];
 
+  jest.runAllTimers();
+
   Promise.allSettled(promises).
   then((results) => {
     let result = Utils.promiseAllSettledTallyResults(results);
-    expect(result).toBe([1,2]);
+    expect(result).toStrictEqual([1,2]);
   });
 })
 
 it('caseUnexpected', ()=>{
-  let caught = false;
-  try {
-    Utils.caseUnexpected(42)
-  } catch (err){
-    caught = true
-  }
-  expect(caught).toEqual(true)
+  expect( () => Utils.caseUnexpected(42)).toThrow()
+})
+
+it('routeGetBase', ()=>{
+  window.location.pathname = "/foo/bar";
+  expect(Utils.routeGetBase()).toBe("/foo");
+})
+
+it('urlGetBase 443', ()=>{
+  window.location.protocol = 'https:';
+  window.location.hostname = 'requenes.com';
+  window.location.port = '443';
+  expect(Utils.urlGetBase()).toBe('https://requenes.com');
+})
+
+it('urlGetBase 8080', ()=>{
+  window.location.protocol = 'http:';
+  window.location.hostname = 'requenes.com';
+  window.location.port = '8080';
+  expect(Utils.urlGetBase()).toBe('http://requenes.com');
+})
+
+it('urlGetBase other port', ()=>{
+  window.location.protocol = 'http:';
+  window.location.host = 'localhost:3000';
+  window.location.port = '3000';
+  expect(Utils.urlGetBase()).toBe('http://localhost:3000');
 })
 
 it('ignorePromise', ()=>{
-  const promise = new Promise((resolve, reject) => setTimeout(reject, 100, 'foo'));
+  const promise = new Promise((resolve, reject) => setTimeout(resolve, 100, 'foo'));
   promise.then(Utils.ignorePromise);
   // Nothing to test, but the line above should not show a 'promise ignored' warning
 })
+
+

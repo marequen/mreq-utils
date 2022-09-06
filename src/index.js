@@ -16,9 +16,66 @@ function segmentProp(object, segment){
     return object[segment]
   }
 }
+/**
+ * helper function for Utils.sortedArrayFindFirstAndLast
+ * @param {Array<string>} list
+ * @param {string} prefix
+ * @param {number} low
+ * @param {number} high
+ * @param {function} valueGetter
+ * @return {number}
+ */
+const sortedArrayFindLast = (list, prefix, low, high, valueGetter) => {
+
+  let highestMatch = low;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2)
+    const guess = valueGetter(list[mid]);
+
+    if (guess.startsWith(prefix)) { //+++ TODO: do this case-insensitively
+      if (mid === high){
+        return mid;
+      }
+      highestMatch = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+      if (high === highestMatch){
+        return highestMatch
+      }
+    }
+  }
+  return low - 1;
+}
+
+function valOf(item){
+  return item;
+}
+
+export function notNil(x){
+  return x !== undefined && x !== null;
+}
+
+export function stringCompareLoose(s1, s2){
+  return s1.localeCompare(s2, undefined, {sensitivity: 'base'});
+}
+
+export function stringEqualLoose(s1, s2){
+  return s1.localeCompare(s2, undefined, {sensitivity: 'base'}) === 0;
+}
+
+export function isNonEmptyString(s){
+  return typeof s === 'string' && s.length > 0;
+}
 
 export function stringTrimFileExtension(s){
   return s.replace(/\.[^/.]+$/, '');
+}
+
+export function arrayFirst(a){
+  console.assert(Array.isArray(a));
+  return a[0];
 }
 
 export function arrayLast(a){
@@ -30,6 +87,101 @@ export function arrayRemoveIndex(a, i){
   return a.splice(i, 1);
 }
 
+export function sortedStringArrayFindFirstAndLast(list, prefix) {
+  return sortedArrayFindFirstAndLast(list, prefix, valOf)
+}
+
+/**
+ * Get the indexes of the first and last entries in a sorted string array,
+ * that start with the given prefix
+ * @param {Array<string>} list
+ * @param {string} prefix
+ * @param {function} valueGetter - function to get the value-for-comparison of an element in the list
+ * @return {[number, number]}
+ */
+export function sortedArrayFindFirstAndLast(list, prefix, valueGetter) {
+  let low = 0;
+  let high = list.length - 1;
+
+  let prevMatch = -1;
+  let lastItemLow = -1;
+  let lastItemHigh;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2)
+    const guess = valueGetter(list[mid])
+
+    if (guess.startsWith(prefix)) { //+++ TODO: do this case-insensitively
+      prevMatch = mid;
+      if (lastItemLow === -1){
+        lastItemLow = mid;
+        lastItemHigh = high;
+      }
+      if (mid === low){
+        // We found the first match, now find the highest
+        const lastMatch = sortedArrayFindLast(list, prefix, lastItemLow + 1, lastItemHigh, valueGetter);
+        return [mid, lastMatch];
+      } else {
+        high = mid - 1
+      }
+    } else if (prevMatch !== -1){
+      low = mid + 1;
+      if (low === prevMatch){
+        // We found the first match, now find the highest
+        const lastMatch = sortedArrayFindLast(list, prefix, lastItemLow + 1, lastItemHigh, valueGetter);
+        return [prevMatch, lastMatch];
+      }
+    } else if (guess.localeCompare(prefix) < 0) {
+      low = mid + 1
+    } else {
+      high = mid - 1
+    }
+  }
+
+  return [-1,-1] //if not found
+}
+
+export function sortedStringArrayCollate(a, b){
+  return sortedArrayCollate(a, b, valOf);
+}
+
+export function sortedArrayCollate(a, b, valueGetter){
+
+  let result = [];
+
+  const _hasMore = (arr, idx) => {
+    return idx < arr.length;
+  }
+  const _finish = (source, sourceFrom) => {
+    for (let i = sourceFrom; i < source.length; i++){
+      result.push(source[i]);
+    }
+  }
+
+  let iA = 0; let iB = 0;
+
+  while (_hasMore(a, iA) && _hasMore(b, iB))  {
+    const itemA = a[iA];
+    const itemB = b[iB];
+    const valA = valueGetter(itemA);
+    const valB = valueGetter(itemB);
+    if (valA.localeCompare(valB) < 0){
+      result.push(itemA);
+      iA++;
+    } else {
+      result.push(itemB);
+      iB++;
+    }
+  }
+
+  if (_hasMore(a, iA)){
+    _finish(a, iA);
+  } else if (_hasMore(b, iB)){
+    _finish(b, iB);
+  }
+
+  return result;
+}
 
 /** Like Array.some, for Map */
 export function mapSome(map, predicate){
@@ -53,6 +205,43 @@ export function mapFilterInPlace(map, predicate){
   keysToDelete.forEach(key => map.delete(key));
 }
 
+export function setFirst(s){
+  const iterator1 = s[Symbol.iterator]();
+  return iterator1.next().value
+}
+
+function setFindIterator(s, predicate){
+  const iterator = s[Symbol.iterator]();
+  for (;;){
+    const iV = iterator.next();
+    if (iV.done){
+      return iV;
+    }
+    if (predicate(iV.value)){
+      return iV;
+    }
+  }
+}
+
+export function setFind(s, predicate){
+  const i = setFindIterator(s, predicate);
+  return (i.done) ? undefined : i.value;
+}
+
+export function setToggle(s, value){
+  s.has(value) ? s.delete(value) : s.add(value);
+}
+
+/**
+ * Like Array.some, but for Set.
+ * @param {Set} set
+ * @param {function} predicate
+ * @return {boolean}
+ */
+export function setSome(set, predicate){
+  const i = setFindIterator(set, predicate);
+  return !i.done
+}
 /**
  * Merge a source Set into a destination Set
  * @param destination
@@ -311,6 +500,28 @@ export function promiseAllSettledTallyResults( resultsIterable ){
 }
 
 /**
+ * Returns the component after the fist slash.
+ * @return {string}
+ */
+export function routeGetBase(){
+  const loc = window.location.pathname;
+  const locComponents = loc.split('/');
+  return '/' + locComponents[1];
+}
+
+export function urlGetBase(){
+  const location = window.location;
+  const httpOrHttpsPort = ['443', '8080'].includes(location.port);
+  let returnUrl = location.protocol + '//';
+  if (httpOrHttpsPort) {
+    returnUrl += window.location.hostname // e.g. https://thaiwatchhub.com
+  } else {
+    returnUrl += window.location.host;    // e.g. http://localhost:3000
+  }
+  return returnUrl;
+}
+
+/**
  * Used in conjunction with a 'default' case, in a switch statement;
  * such as when all possible enum values have been handled, but the
  * IDE linter complains about not having a default handler.
@@ -324,3 +535,8 @@ export function caseUnexpected(v){
  * Used to hush 'unhandled promise' linter warnings
  */
 export function ignorePromise(){}
+
+/**
+ * Used to hush 'unhandled promise' linter warnings
+ */
+export function ignorePromiseResult(){}
