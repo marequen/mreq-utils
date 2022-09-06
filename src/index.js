@@ -242,6 +242,7 @@ export function setSome(set, predicate){
   const i = setFindIterator(set, predicate);
   return !i.done
 }
+
 /**
  * Merge a source Set into a destination Set
  * @param destination
@@ -290,6 +291,20 @@ export function formatMailToLink(emailAddress){
   return `<a href="mailto:${emailAddress}">${emailAddress}</a>`;
 }
 
+/**
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isURIEncodable(value){
+  return ['string', 'number', 'boolean'].includes(typeof(value));
+}
+
+/**
+ *
+ * @param {object} obj
+ * @returns {string}
+ */
 export function objectToQueryString(obj) {
   let params = [];
   for (let p in obj)
@@ -297,13 +312,21 @@ export function objectToQueryString(obj) {
       const val = obj[p];
       if (Array.isArray(val)){
         params.push(arrayToQueryParams(val, p));
+      } else if (isURIEncodable(val)) {
+        params.push(encodeURIComponent(p) + "=" + encodeURIComponent(val));
       } else {
-        params.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+        console.debug('cannot encode property', p, 'of', obj);
       }
     }
   return params.join("&");
 }
 
+/**
+ *
+ * @param {Array<string | number | boolean>} array
+ * @param {string} paramName
+ * @returns {string}
+ */
 export function arrayToQueryParams(array, paramName){
   let str = paramName + '=';
   for (let i = 0; i < array.length; ++i){
@@ -318,17 +341,23 @@ export function arrayToQueryParams(array, paramName){
 /**
  * Given an object and a dot-style property name specification,
  * return the value of the property at that path.
- * @param object
- * @param path
- * @return {undefined}
+ * @param {object} object
+ * @param {string} path
+ * @return {*}
  */
 export function pathProp(object, path){
+
+  if (isNonEmptyString(path) === false){
+    throw new Error("invalid path");
+  }
 
   let result = undefined;
 
   let pathSegments = path.split('.');
   for (let pathSegment of pathSegments){
-    if (pathSegment.length === 0) throw (new Error("empty path segment"));
+    if (pathSegment.length === 0) {
+      throw new Error("empty path segment");
+    }
     if (result === undefined){
       // first time through
       result = segmentProp(object, pathSegment)
@@ -344,9 +373,9 @@ export function pathProp(object, path){
 /**
  * Given an object, a value, and a dot-style property name specification,
  * set the value of the object's property
- * @param object
- * @param path
- * @param value
+ * @param {object} object
+ * @param {string} path
+ * @param {*} value
  */
 export function pathPropStore(object, path, value){
   if (!path) throw(new Error('empty path'));
@@ -398,7 +427,7 @@ export function pathPropStore(object, path, value){
  * NOTE: does not recurse!
  * @param a
  * @param b
- * @return {*[]}
+ * @return {Array<string>}
  */
 export function propsDiff(a, b){
 
@@ -434,26 +463,6 @@ export function jsonParseNoThrow(s){
   } catch(err){
     console.error('parsing JSON', err);
     return null;
-  }
-}
-
-export function jsonReplacer(key, value){
-  if (value instanceof Set){
-    return Array.from(value);
-  }
-  return value;
-}
-
-/** While jsonReplacer converts Sets to Arrays, for storing in JSON, this function
- * helps to do the opposite. There's no easy way to do it automagically, since we'd
- * have to know which Arrays are meant to be converted and which ones should be left
- * as Arrays. I THOUGHT about adding meta-data to the output of jsonReplacer, but that
- * felt a bit lame. */
-export function arrayOrUndefinedToSet(val, callback){
-  if (val === undefined) {
-    callback(new Set());
-  } else if (Array.isArray(val)) {
-    callback(new Set(val));
   }
 }
 
@@ -497,28 +506,6 @@ export function promiseAllSettledTallyResults( resultsIterable ){
     }
   }, [0,0]);
   return successAndFails;
-}
-
-/**
- * Returns the component after the fist slash.
- * @return {string}
- */
-export function routeGetBase(){
-  const loc = window.location.pathname;
-  const locComponents = loc.split('/');
-  return '/' + locComponents[1];
-}
-
-export function urlGetBase(){
-  const location = window.location;
-  const httpOrHttpsPort = ['443', '8080'].includes(location.port);
-  let returnUrl = location.protocol + '//';
-  if (httpOrHttpsPort) {
-    returnUrl += window.location.hostname // e.g. https://thaiwatchhub.com
-  } else {
-    returnUrl += window.location.host;    // e.g. http://localhost:3000
-  }
-  return returnUrl;
 }
 
 /**

@@ -1,6 +1,5 @@
 import * as Utils from "./index.js";
 import {jest} from "@jest/globals";
-import {isNonEmptyString, setFind, sortedStringArrayCollate, stringCompareLoose, urlGetBase} from "./index.js";
 
 afterEach(() => {
   jest.useRealTimers();
@@ -243,6 +242,11 @@ it('setFirst', ()=>{
   expect(Utils.setFirst(testSetA)).toEqual(1);
 })
 
+it('setFirst', ()=>{
+  let testSetA = new Set();
+  expect(Utils.setFirst(testSetA)).toBe(undefined);
+})
+
 it('setFind', ()=>{
   let testSetA = new Set([1, 2, 3]);
   expect(Utils.setFind(testSetA, (item)=> item === 1)).toEqual(1);
@@ -408,6 +412,7 @@ it('pathProp array 2 level', ()=>{
   const result = Utils.pathProp(testObject, 'foo.bar[1]');
   expect(result).toBe(69);
 })
+
 it('pathProp foo[0].bar', ()=>{
   const testObject = {
     foo: [
@@ -424,6 +429,15 @@ it('pathProp foo[0] with non-array', ()=>{
   };
   const result = Utils.pathProp(testObject, 'foo[0]');
   expect(result).toBe(undefined);
+})
+
+it('pathProp with bad path', ()=>{
+  const testObject = {
+    foo: ""
+  };
+  expect(() => Utils.pathProp(testObject, '')).toThrow();
+  expect( () => Utils.pathProp(testObject, 'foo.')).toThrow();
+  expect(() =>Utils.pathProp(testObject, 'foo..')).toThrow();
 })
 
 it('pathPropStore foo.bar', ()=>{
@@ -446,6 +460,14 @@ it('pathPropStore undefined target', ()=>{
   expect(testObject.lang.th.foo.bar).toBe(69);
 })
 
+it('pathPropStore bad path', ()=>{
+  const testObject = {
+    foo: ""
+  };
+  expect(() => Utils.pathPropStore(testObject, '',  69)).toThrow();
+  expect(() => Utils.pathPropStore(testObject, 'foo..',  69)).toThrow();
+})
+
 it('pathPropStore foo[0]', ()=>{
   const testObject = {
     foo: [
@@ -455,6 +477,14 @@ it('pathPropStore foo[0]', ()=>{
   Utils.pathPropStore(testObject, 'foo[0]', {bar: 69});
   expect(testObject.foo[0].bar).toBe(69);
 })
+
+it('pathPropStore foo[0] when target undefined', ()=>{
+  const testObject = {
+  };
+  Utils.pathPropStore(testObject, 'foo[0]', 'array item 0');
+  expect(testObject.foo[0]).toMatch('array item 0');
+})
+
 it('pathPropStore foo[0].bar', ()=>{
   const testObject = {
     foo: [
@@ -469,6 +499,24 @@ it('propsDiff', ()=>{
 
   let testObjA = { a: 1, b: 2}
   let testObjB = { a: 1, b: 3}
+  let result = Utils.propsDiff(testObjA, testObjB);
+  expect(result).toEqual(['b']);
+
+})
+
+it('propsDiff 2', ()=>{
+
+  let testObjA = { a: 1, b: 2}
+  let testObjB = { a: 1 }
+  let result = Utils.propsDiff(testObjA, testObjB);
+  expect(result).toEqual(['b']);
+
+})
+
+it('propsDiff 3', ()=>{
+
+  let testObjA = { a: 1 }
+  let testObjB = { a: 1, b: 1 }
   let result = Utils.propsDiff(testObjA, testObjB);
   expect(result).toEqual(['b']);
 
@@ -489,27 +537,6 @@ it('jsonParseNoThrow invalid JSON', ()=>{
 
   expect(result).toEqual(null );
 
-})
-
-it('jsonReplacer', ()=>{
-
-  let setA = new Set();
-  setA.add('foo');
-
-  let testObj = { 'set': setA };
-  let result = Utils.jsonReplacer('set', testObj['set']);
-  expect(Array.isArray(result)).toBe(true);
-  expect(result).toEqual(['foo'])
-})
-
-it('arrayOrUndefinedToSet', ()=>{
-
-  let result;
-  Utils.arrayOrUndefinedToSet(undefined, s => result = s);
-  expect(result).toEqual(new Set());
-
-  Utils.arrayOrUndefinedToSet(['foo'], s => result = s);
-  expect(result.has('foo')).toEqual(true);
 })
 
 const oneDay = 60*60*24*1000;
@@ -555,36 +582,24 @@ it('caseUnexpected', ()=>{
   expect( () => Utils.caseUnexpected(42)).toThrow()
 })
 
-it('routeGetBase', ()=>{
-  window.location.pathname = "/foo/bar";
-  expect(Utils.routeGetBase()).toBe("/foo");
-})
-
-it('urlGetBase 443', ()=>{
-  window.location.protocol = 'https:';
-  window.location.hostname = 'requenes.com';
-  window.location.port = '443';
-  expect(Utils.urlGetBase()).toBe('https://requenes.com');
-})
-
-it('urlGetBase 8080', ()=>{
-  window.location.protocol = 'http:';
-  window.location.hostname = 'requenes.com';
-  window.location.port = '8080';
-  expect(Utils.urlGetBase()).toBe('http://requenes.com');
-})
-
-it('urlGetBase other port', ()=>{
-  window.location.protocol = 'http:';
-  window.location.host = 'localhost:3000';
-  window.location.port = '3000';
-  expect(Utils.urlGetBase()).toBe('http://localhost:3000');
-})
-
 it('ignorePromise', ()=>{
+  jest.useFakeTimers();
+
   const promise = new Promise((resolve, reject) => setTimeout(resolve, 100, 'foo'));
+  jest.runAllTimers();
+
   promise.then(Utils.ignorePromise);
-  // Nothing to test, but the line above should not show a 'promise ignored' warning
+  // Nothing to test, but the line above should not show a 'promise ignored' warning in the IDE
+})
+
+it('ignorePromiseResult', ()=>{
+  jest.useFakeTimers();
+
+  const promise = new Promise((resolve, reject) => setTimeout(resolve, 100, 'foo'));
+  jest.runAllTimers();
+
+  promise.then(Utils.ignorePromiseResult);
+  // Nothing to test, but the line above should not show a 'promise ignored' warning in the IDE
 })
 
 

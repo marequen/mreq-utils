@@ -50,15 +50,15 @@ declare module 'mreq-utils' {
 
   export function objectToQueryString(obj: object): string;
 
+  export function arrayToQueryParams(array: Array<string | number | boolean>, paramName: string): string;
+
   export function pathProp(object: object, path: string): any;
 
   export function pathPropStore(object: object, path: string, value: any);
 
-  export function propsDiff(a: object, b: object): Array<string | number>;
+  export function propsDiff(a: object, b: object): Array<string>;
 
   export function jsonParseNoThrow(s: string): null | any;
-
-  export function jsonReplacer(key: string, value: any): any;
 
   export function arrayOrUndefinedToSet(val: Array<any> | undefined, callback: (Set<any>));
 
@@ -67,10 +67,6 @@ declare module 'mreq-utils' {
   export function timeStampToDateInputValue(ts: number): string;
 
   export function promiseAllSettledTallyResults(resultsIterable: Iterable<any>): [number, number];
-
-  export function routeGetBase(): string;
-
-  export function urlGetBase(): string;
 
   export function caseUnexpected(v: any);
 
