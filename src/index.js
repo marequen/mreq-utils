@@ -1,7 +1,13 @@
 const bracketRe = /(.+)\[([0-9]+)]/;
 
-// segment can be a simple property name, such as "name" or
-// a name with an array index, such as "foo[0]"
+
+/**
+ * Helper function for pathProp. 'Segment' can be a simple property
+ * name, such as "name" or a name with an array index, such as "foo[0]"
+ * @param {object} object
+ * @param {string} segment
+ * @returns {undefined|*}
+ */
 function segmentProp(object, segment){
   let match = bracketRe.exec(segment);
   if (match){
@@ -16,8 +22,9 @@ function segmentProp(object, segment){
     return object[segment]
   }
 }
+
 /**
- * helper function for Utils.sortedArrayFindFirstAndLast
+ * Helper function for sortedArrayFindFirstAndLast.
  * @param {Array<string>} list
  * @param {string} prefix
  * @param {number} low
@@ -46,6 +53,9 @@ const sortedArrayFindLast = (list, prefix, low, high, valueGetter) => {
       }
     }
   }
+  // We assume that 'list[low-1]' is a match for 'prefix'; i.e., that sortedArrayFindLast
+  // is only called after successfully finding a match in 'list'
+  console.assert(valueGetter(list[low - 1]).startsWith(prefix));
   return low - 1;
 }
 
@@ -53,48 +63,91 @@ function valOf(item){
   return item;
 }
 
+/**
+ * Simple test for undefined or null
+ * @param {*} x
+ * @returns {boolean}
+ */
 export function notNil(x){
   return x !== undefined && x !== null;
 }
 
+/**
+ * Case-insensitive string compare, ignoring diacritics
+ * @param {string} s1
+ * @param {string} s2
+ * @returns {number}
+ */
 export function stringCompareLoose(s1, s2){
   return s1.localeCompare(s2, undefined, {sensitivity: 'base'});
 }
 
+/**
+ * Case-insensitive string equality, ignoring diacritics
+ * @param {string} s1
+ * @param {string} s2
+ * @returns {boolean}
+ */
 export function stringEqualLoose(s1, s2){
   return s1.localeCompare(s2, undefined, {sensitivity: 'base'}) === 0;
 }
 
+/**
+ * Test that parameter is a non-empty string
+ * @param {*} s
+ * @returns {boolean}
+ */
 export function isNonEmptyString(s){
   return typeof s === 'string' && s.length > 0;
 }
 
+/**
+ * Trims file extension, including period, from a string and returns it.
+ * @param {string} s
+ * @returns {string}
+ */
 export function stringTrimFileExtension(s){
   return s.replace(/\.[^/.]+$/, '');
 }
 
+/**
+ * Returns first element of an array.
+ * Mostly exists for symmetry with arrayLast.
+ * @param {Array} a
+ * @returns {* | undefined}
+ */
 export function arrayFirst(a){
   console.assert(Array.isArray(a));
   return a[0];
 }
 
+/**
+ * Returns last element of an array.
+ * @param {Array} a
+ * @returns {* | undefined}
+ */
 export function arrayLast(a){
   console.assert(Array.isArray(a));
   return a[a.length - 1];
 }
 
-export function arrayRemoveIndex(a, i){
-  return a.splice(i, 1);
-}
-
+/**
+ * Get the indexes of the first and last entries in a sorted string array
+ * that start with the given prefix. Undefined behavior if the array is not
+ * sorted.
+ * @param {Array<string>} list
+ * @param {string} prefix
+ * @returns {[number,number]}
+ */
 export function sortedStringArrayFindFirstAndLast(list, prefix) {
   return sortedArrayFindFirstAndLast(list, prefix, valOf)
 }
 
 /**
- * Get the indexes of the first and last entries in a sorted string array,
- * that start with the given prefix
- * @param {Array<string>} list
+ * Get the indexes of the first and last entries in a sorted array,
+ * that start with the given prefix. Undefined behavior if the array is not
+ * sorted.
+ * @param {Array<any>} list
  * @param {string} prefix
  * @param {function} valueGetter - function to get the value-for-comparison of an element in the list
  * @return {[number, number]}
@@ -141,6 +194,12 @@ export function sortedArrayFindFirstAndLast(list, prefix, valueGetter) {
   return [-1,-1] //if not found
 }
 
+/**
+ * Collate two
+ * @param {Array<string>} a
+ * @param {Array<string>} b
+ * @returns {Array<string>}
+ */
 export function sortedStringArrayCollate(a, b){
   return sortedArrayCollate(a, b, valOf);
 }

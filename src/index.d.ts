@@ -14,8 +14,6 @@ declare module 'mreq-utils' {
 
   export function arrayLast(a: Array<any>): any | undefined;
 
-  export function arrayRemoveIndex(a: Array<any>, i: number);
-
   export function mapSome(map: object, predicate: (any) => boolean);
 
   export function mapFilterInPlace(map: object, predicate: (any) => boolean);

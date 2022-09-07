@@ -99,14 +99,6 @@ it('arrayLast empty array', ()=>{
   expect(result).toBeUndefined();
 })
 
-it('arrayRemoveIndex', ()=>{
-  let testArray = [1,2,3];
-  const result = Utils.arrayRemoveIndex(testArray, 1);
-
-  expect(testArray).toEqual([1,3]);
-  expect(result).toEqual([2]);
-})
-
 it('sortedStringArrayFindFirstAndLast', ()=>{
   let a = [
     'a', 'b', 'ca', 'cb', 'cc', 'd'
