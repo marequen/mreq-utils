@@ -143,7 +143,6 @@ it('sortedStringArrayFindFirstAndLast not found', ()=>{
   expect(l).toBe(-1);
 })
 
-
 it('sortedArrayFindFirstAndLast', ()=>{
   let a = [
     {name:'a'},
@@ -156,57 +155,6 @@ it('sortedArrayFindFirstAndLast', ()=>{
   let [f,l] = Utils.sortedArrayFindFirstAndLast(a, 'c', (item)=>item.name);
   expect(f).toBe(2);
   expect(l).toBe(4);
-})
-
-it('sortedStringArrayCollate', ()=>{
-  let a1 = [
-    'a', 'ca',  'cc',
-  ];
-  let a2 = [
-    'b',  'cb',  'd'
-  ];
-  let e = [
-    'a', 'b', 'ca', 'cb', 'cc', 'd'
-  ];
-  let r = Utils.sortedStringArrayCollate(a1, a2);
-  expect(r).toStrictEqual(e);
-})
-
-it('sortedStringArrayCollate 2', ()=>{
-  let a1 = [
-    'a', 'b',  'cc', 'd'
-  ];
-  let a2 = [
-    'ca',  'cb',
-  ];
-  let e = [
-    'a', 'b', 'ca', 'cb', 'cc', 'd'
-  ];
-  let r = Utils.sortedStringArrayCollate(a1, a2);
-  expect(r).toStrictEqual(e);
-})
-
-it('sortedArrayCollate', ()=>{
-  let a1 = [
-    {name:'a'},
-    {name:'ca'},
-    {name:'cc'}
-  ];
-  let a2 = [
-    {name:'b'},
-    {name:'cb'},
-    {name:'d'}
-  ];
-  let e = [
-    {name:'a'},
-    {name:'b'},
-    {name:'ca'},
-    {name:'cb'},
-    {name:'cc'},
-    {name:'d'}
-  ];
-  let r = Utils.sortedArrayCollate(a1, a2, (item)=>item.name);
-  expect(r).toStrictEqual(e);
 })
 
 it('mapSome', ()=>{

@@ -194,54 +194,6 @@ export function sortedArrayFindFirstAndLast(list, prefix, valueGetter) {
   return [-1,-1] //if not found
 }
 
-/**
- * Collate two
- * @param {Array<string>} a
- * @param {Array<string>} b
- * @returns {Array<string>}
- */
-export function sortedStringArrayCollate(a, b){
-  return sortedArrayCollate(a, b, valOf);
-}
-
-export function sortedArrayCollate(a, b, valueGetter){
-
-  let result = [];
-
-  const _hasMore = (arr, idx) => {
-    return idx < arr.length;
-  }
-  const _finish = (source, sourceFrom) => {
-    for (let i = sourceFrom; i < source.length; i++){
-      result.push(source[i]);
-    }
-  }
-
-  let iA = 0; let iB = 0;
-
-  while (_hasMore(a, iA) && _hasMore(b, iB))  {
-    const itemA = a[iA];
-    const itemB = b[iB];
-    const valA = valueGetter(itemA);
-    const valB = valueGetter(itemB);
-    if (valA.localeCompare(valB) < 0){
-      result.push(itemA);
-      iA++;
-    } else {
-      result.push(itemB);
-      iB++;
-    }
-  }
-
-  if (_hasMore(a, iA)){
-    _finish(a, iA);
-  } else if (_hasMore(b, iB)){
-    _finish(b, iB);
-  }
-
-  return result;
-}
-
 /** Like Array.some, for Map */
 export function mapSome(map, predicate){
   // eslint-disable-next-line

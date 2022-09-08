@@ -22,10 +22,6 @@ declare module 'mreq-utils' {
 
   export function sortedArrayFindFirstAndLast(list: Array<any>, prefix:string, valueGetter: (any) => string): [number, number];
 
-  export function sortedStringArrayCollate(a: Array<string>, b: Array<string>): Array<string>;
-
-  export function sortedArrayCollate(a: Array<any>, b: Array<any>, valueGetter: (any) => string): Array<any>;
-
   export function setFirst(s: Set<any>): any;
 
   export function setFind(s: Set<any>, predicate: (any) => boolean): any;
