@@ -99,64 +99,6 @@ it('arrayLast empty array', ()=>{
   expect(result).toBeUndefined();
 })
 
-it('sortedStringArrayFindFirstAndLast', ()=>{
-  let a = [
-    'a', 'b', 'ca', 'cb', 'cc', 'd'
-  ];
-  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'c');
-  expect(f).toBe(2);
-  expect(l).toBe(4);
-})
-
-it('sortedStringArrayFindFirstAndLast 2', ()=>{
-  let a = [
-    'a', 'b', 'ca', 'cb', 'cc', 'd'
-  ];
-  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'd');
-  expect(f).toBe(5);
-  expect(l).toBe(5);
-})
-
-it('sortedStringArrayFindFirstAndLast 3', ()=>{
-  let a = [
-    'a', 'b', 'ba', 'ca', 'cb', 'cc', 'd', 'e', 'f', 'g', 'h'
-  ];
-  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'cb');
-  expect(f).toBe(4);
-  expect(l).toBe(4);
-})
-
-it('sortedStringArrayFindFirstAndLast 4', ()=>{
-  let a = [
-    'a', 'ab'
-  ];
-  let r = Utils.sortedStringArrayFindFirstAndLast(a, 'a');
-  expect(r).toStrictEqual([0, 1]);
-})
-
-it('sortedStringArrayFindFirstAndLast not found', ()=>{
-  let a = [
-    'a', 'b', 'ca', 'cb', 'cc', 'd'
-  ];
-  let [f,l] = Utils.sortedStringArrayFindFirstAndLast(a, 'e');
-  expect(f).toBe(-1);
-  expect(l).toBe(-1);
-})
-
-it('sortedArrayFindFirstAndLast', ()=>{
-  let a = [
-    {name:'a'},
-    {name:'b'},
-    {name:'ca'},
-    {name:'cb'},
-    {name:'cc'},
-    {name:'d'}
-  ];
-  let [f,l] = Utils.sortedArrayFindFirstAndLast(a, 'c', (item)=>item.name);
-  expect(f).toBe(2);
-  expect(l).toBe(4);
-})
-
 it('mapSome', ()=>{
   let testMap = new Map();
   testMap.set('a', 'first');
@@ -276,6 +218,28 @@ it('formatMailToLink', ()=>{
   expect(result).toMatch(/<a /);
   expect(result).toMatch(/ href=['"]mailto:henry@ford.com/);
   expect(result).toMatch(/>.*henry@ford\.com.*<\/a>/)
+
+})
+
+it('objectEnsureProperty', ()=>{
+
+  let testObj = {};
+  expect(Utils.objectEnsureProperty(testObj, 'a', 1971)).toBe(1971);
+
+  testObj['a'] = 1977;
+  expect(Utils.objectEnsureProperty(testObj, 'a', 1971)).toBe(1977);
+
+})
+
+it('objectEnsurePropertyWithFactory', ()=>{
+
+  let testObj = {};
+  const factory = ()=>1971;
+
+  expect(Utils.objectEnsurePropertyWithFactory(testObj, 'a', factory)).toBe(1971);
+
+  testObj['a'] = 1977;
+  expect(Utils.objectEnsurePropertyWithFactory(testObj, 'a', factory)).toBe(1977);
 
 })
 

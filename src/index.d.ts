@@ -18,10 +18,6 @@ declare module 'mreq-utils' {
 
   export function mapFilterInPlace(map: object, predicate: (any) => boolean);
 
-  export function sortedStringArrayFindFirstAndLast(list: Array<string>, prefix:string): [number, number];
-
-  export function sortedArrayFindFirstAndLast(list: Array<any>, prefix:string, valueGetter: (any) => string): [number, number];
-
   export function setFirst(s: Set<any>): any;
 
   export function setFind(s: Set<any>, predicate: (any) => boolean): any;
@@ -41,6 +37,10 @@ declare module 'mreq-utils' {
   export function isFunction(foo: any): boolean;
 
   export function formatMailToLink(emailAddress: string): string;
+
+  export function objectEnsureProperty(obj: object, property:string, defaultValue: any): any;
+
+  export function objectEnsurePropertyWithFactory(obj: object, property:string, defaultValueFactory: () => any): any;
 
   export function objectToQueryString(obj: object): string;
 

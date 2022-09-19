@@ -24,46 +24,6 @@ function segmentProp(object, segment){
 }
 
 /**
- * Helper function for sortedArrayFindFirstAndLast.
- * @param {Array<string>} list
- * @param {string} prefix
- * @param {number} low
- * @param {number} high
- * @param {function} valueGetter
- * @return {number}
- */
-const sortedArrayFindLast = (list, prefix, low, high, valueGetter) => {
-
-  let highestMatch = low;
-
-  while (low <= high) {
-    const mid = Math.floor((low + high) / 2)
-    const guess = valueGetter(list[mid]);
-
-    if (guess.startsWith(prefix)) { //+++ TODO: do this case-insensitively
-      if (mid === high){
-        return mid;
-      }
-      highestMatch = mid;
-      low = mid + 1;
-    } else {
-      high = mid - 1;
-      if (high === highestMatch){
-        return highestMatch
-      }
-    }
-  }
-  // We assume that 'list[low-1]' is a match for 'prefix'; i.e., that sortedArrayFindLast
-  // is only called after successfully finding a match in 'list'
-  console.assert(valueGetter(list[low - 1]).startsWith(prefix));
-  return low - 1;
-}
-
-function valOf(item){
-  return item;
-}
-
-/**
  * Simple test for undefined or null
  * @param {*} x
  * @returns {boolean}
@@ -129,69 +89,6 @@ export function arrayFirst(a){
 export function arrayLast(a){
   console.assert(Array.isArray(a));
   return a[a.length - 1];
-}
-
-/**
- * Get the indexes of the first and last entries in a sorted string array
- * that start with the given prefix. Undefined behavior if the array is not
- * sorted.
- * @param {Array<string>} list
- * @param {string} prefix
- * @returns {[number,number]}
- */
-export function sortedStringArrayFindFirstAndLast(list, prefix) {
-  return sortedArrayFindFirstAndLast(list, prefix, valOf)
-}
-
-/**
- * Get the indexes of the first and last entries in a sorted array,
- * that start with the given prefix. Undefined behavior if the array is not
- * sorted.
- * @param {Array<any>} list
- * @param {string} prefix
- * @param {function} valueGetter - function to get the value-for-comparison of an element in the list
- * @return {[number, number]}
- */
-export function sortedArrayFindFirstAndLast(list, prefix, valueGetter) {
-  let low = 0;
-  let high = list.length - 1;
-
-  let prevMatch = -1;
-  let lastItemLow = -1;
-  let lastItemHigh;
-
-  while (low <= high) {
-    const mid = Math.floor((low + high) / 2)
-    const guess = valueGetter(list[mid])
-
-    if (guess.startsWith(prefix)) { //+++ TODO: do this case-insensitively
-      prevMatch = mid;
-      if (lastItemLow === -1){
-        lastItemLow = mid;
-        lastItemHigh = high;
-      }
-      if (mid === low){
-        // We found the first match, now find the highest
-        const lastMatch = sortedArrayFindLast(list, prefix, lastItemLow + 1, lastItemHigh, valueGetter);
-        return [mid, lastMatch];
-      } else {
-        high = mid - 1
-      }
-    } else if (prevMatch !== -1){
-      low = mid + 1;
-      if (low === prevMatch){
-        // We found the first match, now find the highest
-        const lastMatch = sortedArrayFindLast(list, prefix, lastItemLow + 1, lastItemHigh, valueGetter);
-        return [prevMatch, lastMatch];
-      }
-    } else if (guess.localeCompare(prefix) < 0) {
-      low = mid + 1
-    } else {
-      high = mid - 1
-    }
-  }
-
-  return [-1,-1] //if not found
 }
 
 /** Like Array.some, for Map */
@@ -309,6 +206,38 @@ export function formatMailToLink(emailAddress){
  */
 function isURIEncodable(value){
   return ['string', 'number', 'boolean'].includes(typeof(value));
+}
+
+/**
+ * For a given property of an object,
+ * if the property is undefined, initialize it with the given default value,
+ * then get the current value.
+ * If defaultValue is non-trivial, consider using objectEnsurePropertyWithFactory,
+ * which would only instantiate the default value when necessary.
+ * @param {object} obj
+ * @param {string|number|boolean} property
+ * @param {*} defaultValue
+ * @returns {*}
+ */
+export function objectEnsureProperty(obj, property, defaultValue){
+  return objectEnsurePropertyWithFactory(obj, property, ()=>defaultValue);
+}
+
+/**
+ * For a given property of an object,
+ * if the property is undefined, initialize it with given default value factory function,
+ * then get the current value.
+ * @param {object} obj
+ * @param {string|number|boolean} property
+ * @param {()=>any} defaultValueFactory
+ * @returns {*}
+ */
+export function objectEnsurePropertyWithFactory(obj, property, defaultValueFactory){
+  let result = obj[property];
+  if (result === undefined){
+    result = obj[property] = defaultValueFactory()
+  }
+  return result;
 }
 
 /**
